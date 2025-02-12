@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modbus Software Project - {{ version }}</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Modbus Device Scanner - Version: {{ version }}</h1>
+    
+    <form id="scanForm">
+        <label for="start_id">Start Slave ID:</label>
+        <input type="number" id="start_id" name="start_id" value="1"><br><br>
+        
+        <label for="stop_id">Stop Slave ID:</label>
+        <input type="number" id="stop_id" name="stop_id" value="2"><br><br>
+        
+        <button type="button" id="start_scan">Start Scan</button>
+        <button type="button" id="stop_scan">Stop Scan</button>
+    </form>
+
+    <h2>Status: <span id="status">Idle</span></h2>
+    <h3>Detected Devices:</h3>
+    <ul id="devices_list"></ul>
+
+    <script>
+        $('#start_scan').click(function() {
+            var start_id = $('#start_id').val();
+            var stop_id = $('#stop_id').val();
+
+            $.post("/start_scan", {start_id: start_id, stop_id: stop_id}, function(response) {
+                if (response.error) {
+                    alert(response.error);
+                } else {
+                    $('#status').text(response.status);
+                    if (response.devices && response.devices.length > 0) {
+                        $('#devices_list').empty();
+                        response.devices.forEach(function(device) {
+                            $('#devices_list').append(`<li>Slave ID: ${device.slave_id}, Baud Rate: ${device.baud_rate}, Parity: ${device.parity}, Stop Bits: ${device.stop_bits}</li>`);
+                        });
+                    }
+                }
+            });
+        });
+
+        $('#stop_scan').click(function() {
+            $.post("/stop_scan", function(response) {
+                $('#status').text(response.status);
+            });
+        });
+    </script>
+</body>
+</html>
