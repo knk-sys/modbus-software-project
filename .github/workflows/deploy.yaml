@@ -27,10 +27,10 @@ jobs:
 
       - name: Install python3-venv and dependencies
         run: |
-          # Install python3-venv and dependencies on EC2
+          # SSH into EC2 to install python3-venv and python3-pip
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
           sudo apt update
-          sudo apt install -y python3-venv python3-pip
+          sudo apt install -y python3-venv python3-pip git
 
           # Ensure the project directory exists
           if [ ! -d "modbus-software-project" ]; then
@@ -48,10 +48,8 @@ jobs:
             python3 -m venv venv
           fi
 
-          # Activate the virtual environment
+          # Activate the virtual environment and install dependencies
           source venv/bin/activate
-
-          # Install dependencies inside the virtual environment
           pip install -r requirements.txt
 
           # Kill any running instance of app.py
