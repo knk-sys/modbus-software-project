@@ -29,9 +29,30 @@ jobs:
         run: |
           # Run the SSH commands to deploy on EC2
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
+          # Check if Python and pip are installed, install if missing
+          if ! command -v python3 &> /dev/null
+          then
+              echo "Python3 not found, installing..."
+              sudo yum install -y python3
+          fi
+
+          if ! command -v pip3 &> /dev/null
+          then
+              echo "pip3 not found, installing..."
+              curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+              sudo python3 get-pip.py
+          fi
+
+          # Navigate to the project directory and pull the latest code
           cd modbus-scanner
           git pull origin main
+
+          # Install the required dependencies
           pip3 install -r requirements.txt
+
+          # Kill any existing process running app.py
           pkill -f app.py || true
+
+          # Run the application in the background
           nohup python3 app.py &
           EOF
