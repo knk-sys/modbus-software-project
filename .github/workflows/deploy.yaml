@@ -29,7 +29,18 @@ jobs:
         run: |
           # Run the SSH commands to deploy on EC2
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
-          # Check if Python and pip are installed, install if missing
+          # Ensure the 'modbus-software-project' directory exists, clone it if not
+          if [ ! -d "modbus-software-project" ]; then
+            git clone https://github.com/knk-sys/modbus-software-project.git
+          fi
+
+          # Navigate to the project directory
+          cd modbus-software-project
+
+          # Pull the latest code
+          git pull origin main
+
+          # Ensure Python3 and pip3 are installed
           if ! command -v python3 &> /dev/null
           then
               echo "Python3 not found, installing..."
@@ -43,14 +54,10 @@ jobs:
               sudo python3 get-pip.py
           fi
 
-          # Navigate to the project directory and pull the latest code
-          cd modbus-scanner
-          git pull origin main
-
-          # Install the required dependencies
+          # Install dependencies
           pip3 install -r requirements.txt
 
-          # Kill any existing process running app.py
+          # Kill any running instance of app.py
           pkill -f app.py || true
 
           # Run the application in the background
