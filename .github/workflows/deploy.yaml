@@ -25,13 +25,16 @@ jobs:
           # Add EC2 to known hosts to avoid SSH fingerprint prompt
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to EC2
+      - name: Install python3-venv and dependencies
         run: |
-          # Run the SSH commands to deploy on EC2
+          # Install python3-venv and dependencies on EC2
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
-          # Ensure the 'modbus-software-project' directory exists, clone it if not
+          sudo apt update
+          sudo apt install -y python3-venv python3-pip
+
+          # Ensure the project directory exists
           if [ ! -d "modbus-software-project" ]; then
-            git clone https://github.com/your-username/modbus-software-project.git
+            git clone https://github.com/knk-sys/modbus-software-project.git
           fi
 
           # Navigate to the project directory
@@ -56,4 +59,11 @@ jobs:
 
           # Run the application in the background
           nohup python3 app.py &
+          EOF
+
+      - name: Confirm Deployment
+        run: |
+          # SSH into EC2 and check if the app is running
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} <<EOF
+          ps aux | grep python3
           EOF
