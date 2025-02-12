@@ -126,4 +126,5 @@ def stop_scan():
     return jsonify({"status": "Scanning stopped."})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # Ensure Flask is accessible from all IP addresses (including EC2 public IP)
+    app.run(host="0.0.0.0", port=5000, debug=True)
